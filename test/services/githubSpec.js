@@ -1,8 +1,7 @@
 const { expect } = require('chai');
-const github = require('../src/services/github');
+const github = require('../../src/services/github');
 
 describe('github service', function () {
-
 
     it('should part revison URL', function () {
 

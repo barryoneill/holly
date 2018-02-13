@@ -11,7 +11,7 @@
     },
     "scripts": {
         "postsetup": "npm install",
-        "test": "mocha",
+        "test": "mocha --require test/set-env.js './**/*Spec.js'",
         "setup": "npm install -g babel-preset-env",
         "ci": "npm run setup && npm run test",
         "clean": "rm -rf node_modules && rm -rf build",
