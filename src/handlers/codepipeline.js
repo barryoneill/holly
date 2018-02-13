@@ -9,7 +9,7 @@ exports.handles = (event) => {
             === "CodePipeline Pipeline Execution State Change"
     }
     catch (_) {
-        console.debug("Not a codepipeline event");
+        console.log("Not a codepipeline event");
         return false;
     }
 };
