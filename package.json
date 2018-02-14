@@ -7,7 +7,7 @@
         "@octokit/rest": "^14.0.9",
         "aws-sdk": "^2.189.0",
         "chai-as-promised": "^7.1.1",
-fff        "https": "^1.0.0",
+        "https": "^1.0.0",
         "rewire": "^3.0.2",
         "services": "0.0.3"
     },
