@@ -32,6 +32,7 @@ exports.handle = (event) => {
     return populateExecutionInfo(messageData)
         .then(populateRunHistory)
         .then(populateGitHubInfo)
+        .then(generateSummary)
         .then(sendToSlack)
         .catch(err => {
             console.log("Failure to process message data: " + err);
@@ -49,35 +50,81 @@ populateExecutionInfo = (messageData) => {
 
     return new AWS.CodePipeline().getPipelineExecution(req)
         .promise()
-        .then(executionInfo => {
-            messageData.executionInfo = executionInfo;
+        .then(data => {
+            messageData.executionInfo = data.pipelineExecution;
             return messageData;
-
         });
 };
 
 populateRunHistory = (messageData) => {
 
-    const req = {'pipelineName': messageData.event.pipelineName, maxResults: 5};
+    const req = {'pipelineName': messageData.event.pipelineName};
     console.log('== loading run history for - ' + JSON.stringify(req));
 
     return new AWS.CodePipeline().listPipelineExecutions(req).promise()
-        .then(runHistory => {
-            messageData.runHistory = runHistory.pipelineExecutionSummaries;
-            return messageData;
+        .then(data => {
 
+            try {
+                const runHistory = data.pipelineExecutionSummaries;
+
+                /* we have no way to tell listPipelineExecutions to start only from this execution, and we're
+                 * only interested in the history of executions _since_ this one, so we'll drop any others
+                 * that may have been triggered in the meantime */
+                const currentExecution = messageData.executionInfo.pipelineExecutionId;
+                const idx = runHistory.findIndex(e => e.pipelineExecutionId === currentExecution);
+
+                messageData.runHistory = runHistory.slice(idx, runHistory.length);
+
+            }
+            catch(err) {
+                console.log('couldn\'t determine severity of message, skipping. Error: ' + err);
+            }
+
+            return messageData;
         });
+};
+
+generateSummary = (messageData) => {
+
+    const history = messageData.runHistory;
+
+    if(!history || history.length < 1) {
+        console.log('No run history loaded for: ' + JSON.stringify(messageData.event));
+        return Promise.resolve(messageData);
+    }
+
+    const summary = {
+        statusChanged: false,
+        curStatus: history[0].status
+    };
+
+    if(history.length > 1) {
+
+        /* filter out the non-interesting statuses ('InProgress', 'Superseded'), we're interested
+         * in detecting an execution that changes from success->failed or vice versa. */
+        const prevExecution = history.slice(1, history.length)
+            .find(e => isImportantStatus(e.status));
+
+        if(prevExecution){
+            summary.prevStatus = prevExecution.status;
+            summary.statusChanged = summary.curStatus !== summary.prevStatus;
+        }
+    }
+
+    messageData.summary = summary;
+
+    return Promise.resolve(messageData);
 };
 
 populateGitHubInfo = (messageData) => {
 
-    if (!messageData.executionInfo.pipelineExecution.artifactRevisions ||
-        messageData.executionInfo.pipelineExecution.artifactRevisions.length < 1) {
+    if (!messageData.executionInfo.artifactRevisions ||
+        messageData.executionInfo.artifactRevisions.length < 1) {
         console.log("No commit information available, skipping.");
         return Promise.resolve(messageData);
     }
 
-    const revisionURL = messageData.executionInfo.pipelineExecution.artifactRevisions[0].revisionUrl;
+    const revisionURL = messageData.executionInfo.artifactRevisions[0].revisionUrl;
     console.log('== loading commit info for - ' + revisionURL);
     return github.fetchCommitInfo(revisionURL)
         .then(commitInfo => {
@@ -94,9 +141,47 @@ populateGitHubInfo = (messageData) => {
 
 sendToSlack = (messageData) => {
 
-    const slackMsg = populateTemplate(messageData);
+    let important = false;
+    let headingMessage = util.format('Still: *%s*', messageData.executionInfo.status);
 
-    slack.sendToSlack(slackMsg);
+    if(messageData.summary && messageData.summary.statusChanged){
+        important = isImportantStatus(messageData.summary.curStatus);
+        headingMessage = util.format('Changed status from *%s* to *%s*',
+            messageData.summary.prevStatus, messageData.summary.curStatus)
+    }
+
+    const heading = util.format('*<https://console.aws.amazon.com/codepipeline/home?region=us-east-1#/view/%s|%s>*: %s',
+        messageData.event.pipelineName, messageData.event.pipelineName, headingMessage);
+
+    const revision = messageData.executionInfo.artifactRevisions[0];
+
+    const slackMsg = {
+        text: heading,
+        attachments: [{
+            color: getColor(messageData.executionInfo.status),
+            ts: messageData.event.time,
+            fields: [
+                {
+                    'value': util.format('*Msg:* \"_%s_\"', revision.revisionSummary),
+                    'short': false
+                }
+                ,{
+                    'value': util.format('*Commit*: <%s|%s>', revision.revisionUrl, revision.revisionId.substring(0, 8)),
+                    'short': true
+                }
+            ]
+        }]
+    };
+
+    const author = messageData.github ? messageData.github.data.commit.author.email : 'n/a';
+    if(messageData.github){
+        slackMsg.attachments[0].fields.push({
+            'value': util.format('*Author:* _%s_', author),
+            'short': true
+        });
+    }
+
+    slack.sendToSlack(slackMsg, important);
 
     return Promise.resolve([messageData, slackMsg]);
 
@@ -104,42 +189,16 @@ sendToSlack = (messageData) => {
 };
 
 getColor = (state) => {
-    const colors = new Map();
-    colors.set('STARTED', 'warning');
-    colors.set('SUCCEEDED', 'good');
-    colors.set('SUPERSEDED', 'warning');
-    colors.set('FAILED', 'danger');
+    console.log('looking up ' + state);
+    const colors = new Map([
+            ['InProgress', 'warning'],
+            ['Succeeded', 'good'],
+            ['Superseded', 'warning'],
+            ['Failed', 'danger'],
+        ]);
     return colors.has(state) ? colors.get(state) : '#AAAAAA';
 };
 
-populateTemplate = (messageData) => {
-
-    const text = util.format('*<https://console.aws.amazon.com/codepipeline/home?region=us-east-1#/view/%s|%s>*: *%s*',
-        messageData.event.pipelineName, messageData.event.pipelineName, messageData.event.state);
-
-    const revision = messageData.executionInfo.pipelineExecution.artifactRevisions[0];
-
-    const author = messageData.github ? messageData.github.data.commit.author.email : 'n/a';
-
-    return slackMsg = {
-        text: text,
-        attachments: [{
-            color: getColor(messageData.event.state),
-            ts: messageData.event.time,
-            fields: [
-                {
-                    'value': util.format('*Msg:* \"_%s_\"', revision.revisionSummary),
-                    'short': false
-                },{
-                    'value': util.format('*Commit*: <%s|%s>', revision.revisionUrl, revision.revisionId.substring(0, 8)),
-                    'short': true
-                },{
-                    'value': util.format('*Author:* _%s_', author),
-                    'short': true
-                }
-            ]
-        }]
-    };
-
+isImportantStatus = (status) => {
+    return status === 'Succeeded' || status === 'Failed';
 };
-

@@ -2,11 +2,25 @@ const https = require('https');
 const util = require('util');
 const config = require('../config');
 
-exports.sendToSlack = (slackMessage) => {
+const slackConfig = config.loadSlackConfig();
 
-    const slackConfig = config.loadSlackConfig();
+exports.sendToSlack = (slackMessage, isImportant) => {
 
-    slackMessage.channel = slackConfig.channel;
+    sendToSlackChannel(slackMessage, slackConfig.channel);
+
+    if(isImportant) {
+        if(!slackConfig.channelImportant){
+            console.log('No important channel configured, will not send additional message');
+        }
+        else {
+            sendToSlackChannel(slackMessage, slackConfig.channelImportant);
+        }
+    }
+};
+
+sendToSlackChannel = (slackMessage, channelName) => {
+
+    slackMessage.channel = channelName;
     slackMessage.username = slackConfig.username;
     slackMessage.icon_emoji = slackConfig.icon_emoji;
 
