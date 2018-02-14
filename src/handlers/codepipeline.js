@@ -146,8 +146,7 @@ sendToSlack = (messageData) => {
 
     if(messageData.summary && messageData.summary.statusChanged){
         important = isImportantStatus(messageData.summary.curStatus);
-        headingMessage = util.format('Changed status from *%s* to *%s*',
-            messageData.summary.prevStatus, messageData.summary.curStatus)
+        headingMessage = util.format('Status changed to *%s*', messageData.summary.curStatus)
     }
 
     const heading = util.format('*<https://console.aws.amazon.com/codepipeline/home?region=us-east-1#/view/%s|%s>*: %s',
