@@ -160,18 +160,20 @@ sendToSlack = (messageData) => {
         attachments: [{
             color: getColor(messageData.executionInfo.status),
             ts: messageData.event.time,
-            fields: [
-                {
-                    'value': util.format('*Msg:* \"_%s_\"', revision.revisionSummary),
-                    'short': false
-                }
-                ,{
-                    'value': util.format('*Commit*: <%s|%s>', revision.revisionUrl, revision.revisionId.substring(0, 8)),
-                    'short': true
-                }
-            ]
+            fields: []
         }]
     };
+
+    if(revision) {
+        slackMsg.attachments[0].fields.push({
+            'value': util.format('*Msg:* \"_%s_\"', revision.revisionSummary),
+            'short': false
+        });
+        slackMsg.attachments[0].fields.push({
+            'value': util.format('*Commit*: <%s|%s>', revision.revisionUrl, revision.revisionId.substring(0, 8)),
+            'short': true
+        });
+    }
 
     const author = messageData.github ? messageData.github.data.commit.author.email : 'n/a';
     if(messageData.github){
