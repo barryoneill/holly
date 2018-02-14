@@ -190,7 +190,6 @@ sendToSlack = (messageData) => {
 };
 
 getColor = (state) => {
-    console.log('looking up ' + state);
     const colors = new Map([
             ['InProgress', 'warning'],
             ['Succeeded', 'good'],
