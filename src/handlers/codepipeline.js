@@ -182,6 +182,9 @@ sendToSlack = (messageData) => {
         });
     }
 
+    // enable markdown in all attachment fields
+    slackMsg.attachments[0].mrkdwn_in = Object.keys(slackMsg.attachments[0]);
+
     slack.sendToSlack(slackMsg, important);
 
     return Promise.resolve([messageData, slackMsg]);
