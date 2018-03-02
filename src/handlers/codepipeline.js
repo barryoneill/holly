@@ -7,8 +7,8 @@ exports.handles = (lambdaPayload) => {
     try {
         return JSON.parse(lambdaPayload)['detail-type'] === "CodePipeline Pipeline Execution State Change"
     }
-    catch (_) {
-        console.log("Not a codepipeline event");
+    catch (err) {
+        console.log("Not a codepipeline event: " + err);
         return false;
     }
 };
