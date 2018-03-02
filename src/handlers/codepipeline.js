@@ -5,7 +5,7 @@ const slack = require('../services/slack');
 
 exports.handles = (lambdaPayload) => {
     try {
-        return JSON.parse(lambdaPayload)['detail-type'] === "CodePipeline Pipeline Execution State Change"
+        return lambdaPayload['detail-type'] === "CodePipeline Pipeline Execution State Change"
     }
     catch (err) {
         console.log("Not a codepipeline event: " + err);
