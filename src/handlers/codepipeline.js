@@ -13,10 +13,9 @@ exports.handles = (lambdaPayload) => {
     }
 };
 
-exports.handle = (lambdaPayload) => {
+exports.handle = (pipelineEvent) => {
 
-    const pipelineEvent = JSON.parse(lambdaPayload);
-    console.log('handling payload: ' + JSON.stringify(pipelineEvent));
+    console.log('handling event: ' + JSON.stringify(pipelineEvent));
 
     const messageData = {
         event: {
