@@ -3,10 +3,9 @@ const AWS = require('aws-sdk');
 const github = require('../services/github');
 const slack = require('../services/slack');
 
-exports.handles = (event) => {
+exports.handles = (lambdaPayload) => {
     try {
-        return JSON.parse(event.Records[0].Sns.Message)['detail-type']
-            === "CodePipeline Pipeline Execution State Change"
+        return JSON.parse(lambdaPayload)['detail-type'] === "CodePipeline Pipeline Execution State Change"
     }
     catch (_) {
         console.log("Not a codepipeline event");
@@ -14,17 +13,17 @@ exports.handles = (event) => {
     }
 };
 
-exports.handle = (event) => {
+exports.handle = (lambdaPayload) => {
 
-    const snsPayload = JSON.parse(event.Records[0].Sns.Message);
-    console.log('handling SNS payload: ' + JSON.stringify(snsPayload));
+    const pipelineEvent = JSON.parse(lambdaPayload);
+    console.log('handling payload: ' + JSON.stringify(pipelineEvent));
 
     const messageData = {
         event: {
-            time: new Date(snsPayload.time).getTime() / 1000,
-            pipelineName: snsPayload.detail.pipeline,
-            executionId: snsPayload.detail['execution-id'],
-            state: snsPayload.detail.state,
+            time: new Date(pipelineEvent.time).getTime() / 1000,
+            pipelineName: pipelineEvent.detail.pipeline,
+            executionId: pipelineEvent.detail['execution-id'],
+            state: pipelineEvent.detail.state,
         }
     };
 

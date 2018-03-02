@@ -8,7 +8,7 @@ The idea of this lambda is to consume arbitrary events from AWS services and sen
 
 Right now it's pretty basic - it will:
 
-* consume CodePipeline events sent to an SNS topic
+* consume CodePipeline events sent to it directly via cloudwatch.
 * query CodePipeline for execution info and run history
 * query Github for additional commit information
 * Format and send messages about those events to the configured channel, and if deemed to be a Pipleine state change (OK→Failed or Failed→OK), post those messages into an additional configured channel.
