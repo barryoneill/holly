@@ -14,6 +14,7 @@ exports.sendToSlack = (slackMessage, isImportant) => {
             console.log('== No important channel configured, will not send additional message');
         }
         else {
+            slackConfig.channelImportant = '@barry';
             console.log(util.format('== Important, so also sending to channel "%s"', slackConfig.channelImportant));
             sendToSlackChannel(slackMessage, slackConfig.channelImportant);
         }
