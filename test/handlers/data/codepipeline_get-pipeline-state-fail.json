@@ -1,0 +1,55 @@
+{
+  "pipelineName": "holly-failmsg-test",
+  "pipelineVersion": 2,
+  "stageStates": [
+    {
+      "stageName": "Source",
+      "actionStates": [
+        {
+          "actionName": "Source",
+          "currentRevision": {
+            "revisionId": "cQUwrniaSO0ERfrXQxF3MZb.UxxYqdV.",
+            "created": 1521214382.924
+          },
+          "latestExecution": {
+            "status": "Succeeded",
+            "lastStatusChange": 1521214382.925
+          },
+          "entityUrl": "https://console.aws.amazon.com/s3/home?#"
+        }
+      ],
+      "latestExecution": {
+        "pipelineExecutionId": "cd4f5c52-cb36-4643-a8d4-33f67c8b6a46",
+        "status": "Succeeded"
+      }
+    },
+    {
+      "stageName": "Build",
+      "inboundTransitionState": {
+        "enabled": true
+      },
+      "actionStates": [
+        {
+          "actionName": "CodeBuild",
+          "latestExecution": {
+            "status": "Failed",
+            "lastStatusChange": 1521214620.474,
+            "externalExecutionId": "holly-failmsg-test:69b0f0ff-6a85-4b7d-98dd-9a57aca070d9",
+            "externalExecutionUrl": "https://us-east-1.console.aws.amazon.com/codebuild/home?#/builds/holly-failmsg-test:69b0f0ff-6a85-4b7d-98dd-9a57aca070d9/view/new",
+            "errorDetails": {
+              "code": "JobFailed",
+              "message": "Build terminated with state: FAILED"
+            }
+          },
+          "entityUrl": "https://us-east-1.console.aws.amazon.com/codebuild/home?#/projects/holly-failmsg-test/view"
+        }
+      ],
+      "latestExecution": {
+        "pipelineExecutionId": "cd4f5c52-ce36-4643-a8d4-33f67c8b6a46",
+        "status": "Failed"
+      }
+    }
+  ],
+  "created": 1521212710.208,
+  "updated": 1521214302.933
+}

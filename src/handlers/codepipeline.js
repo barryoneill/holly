@@ -29,6 +29,7 @@ exports.handle = (pipelineEvent) => {
     // propagate 'messageData' through API calls which hydrate useful info, then send
     return populateExecutionInfo(messageData)
         .then(populateRunHistory)
+        .then(populateActionFailure)
         .then(populateGitHubInfo)
         .then(generateSummary)
         .then(sendToSlack)
@@ -50,6 +51,52 @@ populateExecutionInfo = (messageData) => {
         .promise()
         .then(data => {
             messageData.executionInfo = data.pipelineExecution;
+            return messageData;
+        });
+};
+
+populateActionFailure = (messageData) => {
+
+    /* Populate the failure informatio (if the pipeline failed)
+     * The only API that seems to deliver the stage failure info
+     * is the 'getPipelineState', but it only delivers the info for
+     * the current execution (getPipelineExecution takes an execution
+     * ID but doesn't deliver any failure information */
+    const req = {
+        'name': messageData.event.pipelineName
+    };
+    console.log('== loading pipeline state for - ' + JSON.stringify(req));
+
+    return new AWS.CodePipeline().getPipelineState(req)
+        .promise()
+        .then(data => {
+            if(data && data.stageStates) {
+
+                // find the first 'stateStages' that has a failed 'actionStates' entry
+                const errorStage = data.stageStates.find(s =>
+                    s.actionStates && s.actionStates.some(a =>
+                        a.latestExecution && a.latestExecution.status === 'Failed'));
+
+                if(errorStage) {
+
+                    const errorAction = errorStage.actionStates.find(a =>
+                        a.latestExecution && a.latestExecution.status === 'Failed');
+
+                    const latestExec = errorAction.latestExecution;
+
+                    messageData.stageErrorInfo = {
+                        stageName: errorStage.stageName,
+                        actionName: errorAction.actionName,
+                        code: latestExec.errorDetails.code,
+                        message: latestExec.errorDetails.message,
+                        entityUrl: errorAction.entityUrl,
+                        externalExecutionId: latestExec.externalExecutionId,
+                        externalExecutionUrl: latestExec.externalExecutionUrl
+                    };
+                }
+
+            }
+
             return messageData;
         });
 };

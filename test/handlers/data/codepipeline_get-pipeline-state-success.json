@@ -1,0 +1,51 @@
+{
+  "pipelineName": "holly-failmsg-test",
+  "pipelineVersion": 2,
+  "stageStates": [
+    {
+      "stageName": "Source",
+      "actionStates": [
+        {
+          "actionName": "Source",
+          "currentRevision": {
+            "revisionId": "aQUwrnijSO0ERfrXQxF3MZb.UxxYqdV.",
+            "created": 1521214382.924
+          },
+          "latestExecution": {
+            "status": "Succeeded",
+            "lastStatusChange": 1521214382.925
+          },
+          "entityUrl": "https://console.aws.amazon.com/s3/home?#"
+        }
+      ],
+      "latestExecution": {
+        "pipelineExecutionId": "cd4f5c52-ca36-4643-a8d4-33f67c8b6a46",
+        "status": "Succeeded"
+      }
+    },
+    {
+      "stageName": "Deploy",
+      "inboundTransitionState": {
+        "enabled": true
+      },
+      "actionStates": [
+        {
+          "actionName": "Deploy",
+          "latestExecution": {
+            "status": "Succeeded",
+            "lastStatusChange": 1521226566.105,
+            "externalExecutionId": "holly-failmsg-test:5f834d8a-350f-4b18-9fc6-bba16ccc2552",
+            "externalExecutionUrl": "https://us-east-1.console.aws.amazon.com/codebuild/home?#/builds/holly-failmsg-test-deploy:5f834d8a-350f-4b18-9fc6-bba16ccc2552/view/new"
+          },
+          "entityUrl": "https://us-east-1.console.aws.amazon.com/codebuild/home?#/projects/holly-failmsg-test-deploy/view"
+        }
+      ],
+      "latestExecution": {
+        "pipelineExecutionId": "3ccfdede-2d6a-4e10-885d-cb67da138b35",
+        "status": "Succeeded"
+      }
+    }
+  ],
+  "created": 1521212710.208,
+  "updated": 1521214302.933
+}
