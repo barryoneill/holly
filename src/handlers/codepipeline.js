@@ -65,7 +65,7 @@ populateActionFailure = (messageData) => {
     const req = {
         'name': messageData.event.pipelineName
     };
-    console.log('== loading pipeline state for - ' + JSON.stringify(req));
+    console.log('== loading action failures (if any) for - ' + JSON.stringify(req));
 
     return new AWS.CodePipeline().getPipelineState(req)
         .promise()
@@ -214,6 +214,19 @@ sendToSlack = (messageData) => {
         }]
     };
 
+    if(messageData.stageErrorInfo) {
+
+        const error = messageData.stageErrorInfo;
+
+        const actionlink = util.format('<%s|%s:%s>', error.entityUrl, error.stageName, error.actionName);
+        const execLink = error.externalExecutionUrl ? util.format(' [<%s|more>]', error.externalExecutionUrl) : '';
+
+        slackMsg.attachments[0].fields.push({
+            'value': util.format('%s⇾%s: `%s` %s', actionlink, error.code, truncate(error.message, 50), execLink),
+            'short': false
+        });
+    }
+
     if(revision) {
         const commitLink = util.format('<%s|%s>', revision.revisionUrl, revision.revisionId.substring(0, 8))
         const commitMsg = util.format('\"_%s_\"', truncate(revision.revisionSummary, 50));
@@ -238,7 +251,7 @@ sendToSlack = (messageData) => {
 };
 
 truncate = (value, max) => {
-    const v = value.replace(/(\r\n|\n|\r)/gm,' ');
+    const v = value.replace(/(\r\n|\r|\n)/gm,' ');
     return v.length > max ? v.substring(0, max) + '...' : v;
 };
 
