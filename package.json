@@ -20,7 +20,7 @@
         "clean": "rm -rf node_modules && rm -rf build",
         "prebuild": "npm run clean",
         "build": "npm install --production && mkdir -p build && zip -Xr build/lambda.zip node_modules src package.json"
-    },
+    },INTENTIONAL_ERROR
     "devDependencies": {
         "assert": "^1.4.1",
         "aws-sdk-mock": "^1.7.0",
