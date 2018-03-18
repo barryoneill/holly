@@ -57,7 +57,7 @@ populateExecutionInfo = (messageData) => {
 
 populateActionFailure = (messageData) => {
 
-    /* Populate the failure informatio (if the pipeline failed)
+    /* Populate the failure information (if the pipeline failed)
      * The only API that seems to deliver the stage failure info
      * is the 'getPipelineState', but it only delivers the info for
      * the current execution (getPipelineExecution takes an execution
@@ -72,29 +72,35 @@ populateActionFailure = (messageData) => {
         .then(data => {
             if(data && data.stageStates) {
 
-                // find the first 'stateStages' that has a failed 'actionStates' entry
-                const errorStage = data.stageStates.find(s =>
-                    s.actionStates && s.actionStates.some(a =>
+                try {
+
+                    // find the first 'stateStages' that has a failed 'actionStates' entry
+                    const errorStage = data.stageStates.find(s =>
+                        s.actionStates && s.actionStates.some(a =>
                         a.latestExecution && a.latestExecution.status === 'Failed'));
 
-                if(errorStage) {
+                    if (errorStage) {
 
-                    const errorAction = errorStage.actionStates.find(a =>
-                        a.latestExecution && a.latestExecution.status === 'Failed');
+                        const errorAction = errorStage.actionStates.find(a =>
+                            a.latestExecution && a.latestExecution.status === 'Failed');
 
-                    const latestExec = errorAction.latestExecution;
+                        const latestExec = errorAction.latestExecution;
 
-                    messageData.stageErrorInfo = {
-                        stageName: errorStage.stageName,
-                        actionName: errorAction.actionName,
-                        code: latestExec.errorDetails.code,
-                        message: latestExec.errorDetails.message,
-                        entityUrl: errorAction.entityUrl,
-                        externalExecutionId: latestExec.externalExecutionId,
-                        externalExecutionUrl: latestExec.externalExecutionUrl
-                    };
+                        messageData.stageErrorInfo = {
+                            stageName: errorStage.stageName,
+                            actionName: errorAction.actionName,
+                            code: latestExec.errorDetails.code,
+                            message: latestExec.errorDetails.message,
+                            entityUrl: errorAction.entityUrl,
+                            externalExecutionId: latestExec.externalExecutionId,
+                            externalExecutionUrl: latestExec.externalExecutionUrl
+                        };
+                    }
+
                 }
-
+                catch(err) {
+                    console.log('couldn\'t determine state error info, skipping. Error: ' + err);
+                }
             }
 
             return messageData;
@@ -209,22 +215,16 @@ sendToSlack = (messageData) => {
     };
 
     if(revision) {
+        const commitLink = util.format('<%s|%s>', revision.revisionUrl, revision.revisionId.substring(0, 8))
+        const commitMsg = util.format('\"_%s_\"', truncate(revision.revisionSummary, 50));
         slackMsg.attachments[0].fields.push({
-            'value': util.format('*Msg:* \"_%s_\"', revision.revisionSummary),
+            'value': util.format('%s: %s', commitLink, commitMsg),
             'short': false
-        });
-        slackMsg.attachments[0].fields.push({
-            'value': util.format('*Commit*: <%s|%s>', revision.revisionUrl, revision.revisionId.substring(0, 8)),
-            'short': true
         });
     }
 
-    const author = messageData.github ? messageData.github.data.commit.author.email : 'n/a';
     if(messageData.github){
-        slackMsg.attachments[0].fields.push({
-            'value': util.format('*Author:* _%s_', author),
-            'short': true
-        });
+        slackMsg.attachments[0].footer = messageData.github.data.commit.author.email
     }
 
     // enable markdown in all attachment fields
@@ -235,6 +235,11 @@ sendToSlack = (messageData) => {
     return Promise.resolve([messageData, slackMsg]);
 
 
+};
+
+truncate = (value, max) => {
+    const v = value.replace(/(\r\n|\n|\r)/gm,' ');
+    return v.length > max ? v.substring(0, max) + '...' : v;
 };
 
 getColor = (state) => {
