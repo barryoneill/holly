@@ -7,8 +7,6 @@ describe('github service', function () {
 
         const URI = 'https://github.com/my-repo/my-project/commit/a1b2c3d4e5f6';
 
-        console.log(github.parseRevisionURI(URI));
-
         expect(github.parseRevisionURI(URI)).to.deep.equal({
             owner: 'my-repo',
             repo: 'my-project',

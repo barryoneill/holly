@@ -160,6 +160,14 @@ generateSummary = (messageData) => {
             summary.prevStatus = prevExecution.status;
             summary.statusChanged = summary.curStatus !== summary.prevStatus;
         }
+
+        summary.trend = history.filter(e => isImportantStatus(e.status)).slice(0, 8)
+            .map(e => {
+                if(e.status === 'Failed') {
+                    return '☒'
+                }
+                return (e.lastUpdateTime && e.startTime) ? Math.round((new Date(e.lastUpdateTime).getTime() - new Date(e.startTime).getTime()) / 1000) : '☐';
+            });
     }
 
     messageData.summary = summary;
@@ -238,6 +246,10 @@ sendToSlack = (messageData) => {
 
     if(messageData.github){
         slackMsg.attachments[0].footer = messageData.github.data.commit.author.email
+    }
+
+    if(messageData.summary.trend){
+        slackMsg.attachments[0].footer += util.format(' | trend: [%s]', messageData.summary.trend.join(','))
     }
 
     // enable markdown in all attachment fields

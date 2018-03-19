@@ -95,7 +95,8 @@ describe('codepipeline handler', () => {
                 {
                     statusChanged: false,
                     curStatus: 'Succeeded',
-                    prevStatus: 'Succeeded'
+                    prevStatus: 'Succeeded',
+                    trend: ['☐', '☐']
                 });
         });
 
@@ -110,7 +111,8 @@ describe('codepipeline handler', () => {
                 {
                     statusChanged: false,
                     curStatus: 'Succeeded',
-                    prevStatus: 'Succeeded'
+                    prevStatus: 'Succeeded',
+                    trend: ['☐', '☐']
                 });
         });
 
@@ -123,7 +125,8 @@ describe('codepipeline handler', () => {
                 {
                     statusChanged: true,
                     curStatus: 'Succeeded',
-                    prevStatus: 'Failed'
+                    prevStatus: 'Failed',
+                    trend: ['☐', '☒']
                 });
         });
 
@@ -138,7 +141,8 @@ describe('codepipeline handler', () => {
                 {
                     statusChanged: true,
                     curStatus: 'Failed',
-                    prevStatus: 'Succeeded'
+                    prevStatus: 'Succeeded',
+                    trend: ['☒', '☐']
                 });
         });
 
@@ -152,7 +156,8 @@ describe('codepipeline handler', () => {
                 {
                     statusChanged: true,
                     curStatus: 'Succeeded',
-                    prevStatus: 'Failed'
+                    prevStatus: 'Failed',
+                    trend: ['☐', '☒', '☐']
                 });
         });
 
