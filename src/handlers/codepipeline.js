@@ -230,13 +230,13 @@ sendToSlack = (messageData) => {
         const execLink = error.externalExecutionUrl ? util.format(' [<%s|more>]', error.externalExecutionUrl) : '';
 
         slackMsg.attachments[0].fields.push({
-            'value': util.format('%s⇾%s: `%s` %s', actionlink, error.code, truncate(error.message, 50), execLink),
+            'value': util.format('%s⇾%s: `%s` %s', actionlink, error.code, truncate(error.message, 150), execLink),
             'short': false
         });
     }
 
     if(revision) {
-        const commitLink = util.format('<%s|%s>', revision.revisionUrl, revision.revisionId.substring(0, 8))
+        const commitLink = util.format('<%s|%s>', revision.revisionUrl, revision.revisionId.substring(0, 8));
         const commitMsg = util.format('\"_%s_\"', truncate(revision.revisionSummary, 50));
         slackMsg.attachments[0].fields.push({
             'value': util.format('%s: %s', commitLink, commitMsg),
