@@ -89,8 +89,9 @@ populateActionFailure = (messageData) => {
                         messageData.stageErrorInfo = {
                             stageName: errorStage.stageName,
                             actionName: errorAction.actionName,
-                            code: latestExec.errorDetails.code,
-                            message: latestExec.errorDetails.message || latestExec.summary,
+                            code: latestExec.errorDetails && latestExec.errorDetails.code,
+                            // in the case of an rejection, there is no errorDetails object (but a rejection summary!)
+                            message: (latestExec.errorDetails && latestExec.errorDetails.message) || latestExec.summary,
                             entityUrl: errorAction.entityUrl,
                             externalExecutionId: latestExec.externalExecutionId,
                             externalExecutionUrl: latestExec.externalExecutionUrl
