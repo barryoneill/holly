@@ -1,19 +1,42 @@
 # Holly: An AWS → Slack messaging lambda
 
-[![Holly](docs/holly.png)](docs/holly.png) 
+[![Holly](docs/holly.png)](docs/holly.png)<br>
+_[He's dead, Dave. Everybody is dead. Everybody is dead, Dave.](https://www.youtube.com/watch?v=nyKF2qd0-iQ&t=3m05s)_ 
+
+### TODO:
+
+:warning: This is very much a WIP, and has stalled while my team focus their efforts away from codepipleine 
+for a while.  However, it does work just fine for Codepipeline + Codebuild CI setups.
+
+I would still like to (or have a volunteer!) for:
+
+- Complete the woefully inadequate unit testing
+- Add an install guide (or even better, have install automation via something like terraform)
 
 ### What does it do?
 
-The idea of this lambda is to consume arbitrary events from AWS services and send appropriate slack messages based on the content and determined importance of those events.
+The idea of this [AWS Lambda](https://aws.amazon.com/lambda/) is to consume arbitrary events from 
+AWS services and send _useful_ slack messages based on the content and determined importance of those events.  
 
-Right now it's pretty basic - it will:
+While there are simpler aws->slack notification solutions out there, I wanted something that would provide
+all the relevant info (or at least links to it) directly in the slack notification itself.  
 
-* consume CodePipeline events sent to it directly via cloudwatch.
-* query CodePipeline for execution info and run history
-* query Github for additional commit information
-* Format and send messages about those events to the configured channel, and if deemed to be a Pipleine state change (OK→Failed or Failed→OK), post those messages into an additional configured channel.
 
-Ideas for further enhancement:
+Right now, the lambda currently only understands Codepipeline events.  When it receives one, it will: 
+ 
+* Query CodePipeline for execution info and run history
+* Query Github for commit and author information
+* Format and send all the information it could find about the events to the configured channel
+* If deemed to be 'important', i.e. a pipeline state change (OK→Failed or Failed→OK), post the message 
+    into an additional channel (so you don't spam your team channel with normal success information)
+
+### Examples
+
+[![Failure Message](docs/screenshot-failure.png)](docs/screenshot-failure.png) 
+[![Success Message](docs/screenshot-success.png)](docs/screenshot-success.png) 
+  
+
+### Ideas for further enhancement:
 
 * Add ability to map commit authors to slack handles and directly @ the culprit for failed builds
 * Add ability consume other message AWS event types / sources
