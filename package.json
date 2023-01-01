@@ -9,7 +9,7 @@
         "chai-as-promised": "^7.1.1",
         "https": "^1.0.0",
         "npm": "^6.9.0",
-        "rewire": "^3.0.2",
+        "rewire": "^6.0.0",
         "services": "0.0.3"
     },
     "scripts": {
