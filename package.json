@@ -8,7 +8,7 @@
         "aws-sdk": "^2.449.0",
         "chai-as-promised": "^7.1.1",
         "https": "^1.0.0",
-        "npm": "^6.9.0",
+        "npm": "^9.4.1",
         "rewire": "^3.0.2",
         "services": "0.0.3"
     },
